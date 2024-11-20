@@ -39,7 +39,7 @@ function connectDatabase($host, $dbname, $user, $password)
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 		]);
 	} catch (PDOException $e) {
-		die("Verbindung zur Datenbank fehlgeschlagen: " . $e->getMessage());
+		die("Failed to connect to the database: " . $e->getMessage());
 	}
 }
 
@@ -115,7 +115,7 @@ function compareSchemas(array $schema1, array $schema2)
 function applyChanges(PDO $db, array $differences, array $schema2)
 {
 	foreach ($differences['missing_tables_in_first'] as $table) {
-		echo "Erstelle Tabelle: $table\n";
+		echo "Create table: $table\n";
 		$columns = $schema2[$table];
 		$columnDefinitions = [];
 		$primaryKeys = [];
@@ -144,7 +144,7 @@ function applyChanges(PDO $db, array $differences, array $schema2)
 	foreach ($differences['columns_missing_in_first'] as $table => $columns) {
 		foreach ($columns as $column) {
 			$details = $schema2[$table][$column];
-			echo "Füge Spalte hinzu: $table.$column\n";
+			echo "Add column: $table.$column\n";
 			$sql = "ALTER TABLE `$table` ADD `$column` {$details['Type']} " .
 				($details['Null'] === 'NO' ? 'NOT NULL' : 'NULL') .
 				(isset($details['Default']) && $details['Default'] !== null ? " DEFAULT '{$details['Default']}'" : '') .
@@ -156,7 +156,7 @@ function applyChanges(PDO $db, array $differences, array $schema2)
 	foreach ($differences['column_differences'] as $table => $columns) {
 		foreach ($columns as $column => $diff) {
 			$details = $diff['second_db'];
-			echo "Ändere Spalte: $table.$column\n";
+			echo "Modify column: $table.$column\n";
 			$sql = "ALTER TABLE `$table` MODIFY `$column` {$details['Type']} " .
 				($details['Null'] === 'NO' ? 'NOT NULL' : 'NULL') .
 				(isset($details['Default']) && $details['Default'] !== null ? " DEFAULT '{$details['Default']}'" : '') .
@@ -176,9 +176,9 @@ $schema2 = getDatabaseSchema($db2);
 $differences = compareSchemas($schema1, $schema2);
 
 if ($aend) {
-	echo "Änderungen werden angewendet...\n";
+	echo "Changes are being applied...\n";
 	applyChanges($db1, $differences, $schema2);
 } else {
-	echo "Unterschiede:\n";
+	echo "Differences:\n";
 	print_r($differences);
 }
